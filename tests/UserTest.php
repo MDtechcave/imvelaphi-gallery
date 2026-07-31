@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 class UserTest extends TestCase
 {
     private \PDO $db;
+    private array $testUserIds = [];
 
     protected function setUp(): void
     {
@@ -16,7 +17,21 @@ class UserTest extends TestCase
         $this->db = $database->connect();
     }
 
-    public function testUserCanBeCreated(): void
+    protected function tearDown(): void
+    {
+        foreach ($this->testUserIds as $userId) {
+            $stmt = $this->db->prepare(
+                'DELETE FROM users WHERE id = :id'
+            );
+
+            $stmt->execute(['id' => $userId]);
+        }
+
+    }
+
+
+//TESING IF USER CAN BE CREATED    
+public function testUserCanBeCreated(): void
     {
         $user = new User($this->db);
 
@@ -25,6 +40,8 @@ class UserTest extends TestCase
             'test@example.com',
             'Password123!'
         );
+
+        $this->testUserIds[] = $userId;
 
         $this->assertIsInt($userId);
         $this->assertGreaterThan(0, $userId);
@@ -47,16 +64,10 @@ class UserTest extends TestCase
         $this->assertTrue(
             password_verify('Password123!', $createdUser['password'])
         );
-
-        // Clean up the test user.
-        $delete = $this->db->prepare(
-            'DELETE FROM users WHERE id = :id'
-        );
-
-        $delete->execute(['id' => $userId]);
     }
 
-    public function testUserCanBeFoundByEmail(): void
+ //TESTING IF USER CAN BE FOUND BY THEIR EMAIL   
+public function testUserCanBeFoundByEmail(): void
     {
         $user = new User($this->db);
 
@@ -66,18 +77,58 @@ class UserTest extends TestCase
             'Password123!'
         );
 
+    $this->testUserIds[] = $userId;
+
         $foundUser = $user->findByEmail('findme@example.com');
 
         $this->assertIsArray($foundUser);
         $this->assertSame($userId, (int) $foundUser['id']);
         $this->assertSame('findme', $foundUser['username']);
         $this->assertSame('findme@example.com', $foundUser['email']);
-
-        //Clean Up
-        $delete = $this->db->prepare(
-            'DELETE FROM users WHERE id = :id'
-        );
-
-        $delete->execute(['id' => $userId]);
     }
+
+//TESTING AUTHENTICATION WITH WRONG PASSWORD
+public function testUsercanAuthenticateWithCorrectPassword(): void
+{
+    $user = new User($this->db);
+
+    $userId = $user->create(
+        'loginuser',
+        'login@example.com',
+        'Password123!'
+    );
+
+$this->testUserIds[] = $userId;
+
+$authenticatedUser = $user->authenticate(
+    'login@example.com',
+    'Password123!'
+);
+
+$this->assertIsArray($authenticatedUser);
+$this->assertSame($userId, (int) $authenticatedUser['id']);
+$this->assertSame('loginuser', $authenticatedUser['username']);
+
+}
+
+//TESTING AUTHENTICATION WIT WRONG PASSWORD
+public function testUserCannotAuthenticateWithWrongPassword(): void
+{
+    $user = new User($this->db);
+
+    $userId = $user->create(
+        'wrongpass',
+        'wrongpass@example.com',
+        'Password123!'
+    );
+
+$this->testUserIds[] = $userId;
+
+$authenticatedUser = $user->authenticate(
+    'wrongpass@example.com',
+    'WrongPassword!'
+);
+
+$this->assertNull($authenticatedUser);
+}
 }

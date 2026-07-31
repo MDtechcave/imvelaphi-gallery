@@ -31,4 +31,36 @@ public function create(
 
     return (int) $this->db->lastInsertId();
 }
+public function findByEmail(string $email): ?array
+{
+    $stmt = $this->db->prepare(
+        'SELECT id, username, email, password
+        FROM users
+        WHERE email = :email
+        LIMIT 1'
+    );
+
+    $stmt->execute([
+        'email' => $email
+    ]);
+
+    $user = $stmt->fetch();
+
+    return $user ?: null;
+}
+
+public function authenticate(string $email, string $password): ?array
+{
+    $user = $this->findByEmail($email);
+
+    if ($user === null) {
+        return null;
+    }
+
+    if (!password_verify($password, $user['password'])) {
+        return null;
+    }
+
+    return $user;
+}
 }
