@@ -11,12 +11,14 @@ class UserTest extends TestCase
     private \PDO $db;
     private array $testUserIds = [];
 
+    //BEFORE EVERY TEST, GET EVERYTHING READY.
     protected function setUp(): void
     {
         $database = new Database();
         $this->db = $database->connect();
     }
 
+    //AFTER EVERY TEST, CLEAN EVERYTHING UP.
     protected function tearDown(): void
     {
         foreach ($this->testUserIds as $userId) {
@@ -30,8 +32,8 @@ class UserTest extends TestCase
     }
 
 
-//TESING IF USER CAN BE CREATED    
-public function testUserCanBeCreated(): void
+    //TESING IF USER CAN BE CREATED.    
+    public function testUserCanBeCreated(): void
     {
         $user = new User($this->db);
 
