@@ -30,7 +30,7 @@ class UserTest extends TestCase
     }
 
 
-//TESING IF USER CAN BE CREATED    
+//TESTING IF USER CAN BE CREATED    
 public function testUserCanBeCreated(): void
     {
         $user = new User($this->db);
@@ -86,6 +86,20 @@ public function testUserCanBeFoundByEmail(): void
         $this->assertSame('findme', $foundUser['username']);
         $this->assertSame('findme@example.com', $foundUser['email']);
     }
+
+
+//TESTING AUTHENTICATION WITH A NON-EXISTENT EMAIL
+public function testUserCannotAuthenticateWithNonExistentEmail(): void 
+{
+    $user = new User($this->db);
+
+    $authenticatedUser = $user->authenticate(
+        'doesnotexist@example.com',
+        'Password123!'
+    );
+
+    $this->assertNull($authenticatedUser);
+}
 
 //TESTING AUTHENTICATION WITH WRONG PASSWORD
 public function testUsercanAuthenticateWithCorrectPassword(): void
