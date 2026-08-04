@@ -50,8 +50,6 @@ public function testTribeCanBeCreated(): void
         'Xhosa',
     );
 
-    echo "Culture ID: " . $cultureId . PHP_EOL;
-
     $this->testCultureIds[] = $cultureId;
 
     $this->assertIsInt($cultureId);
@@ -62,7 +60,7 @@ public function testTribeCanBeCreated(): void
 
     $tribeId = $tribe->create(
         $cultureId,
-        'AmaMpondomise',
+        'AmaMpondomise'
     );
 
     $this->testTribeIds[] = $tribeId;

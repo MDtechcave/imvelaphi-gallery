@@ -13,24 +13,30 @@ class Post
 
 public function create(
     int $userId,
+    int $cultureId,
+    int $tribeId,
     string $title,
     string $description,
-    string $image,
-    int $categoryId
+    string $image
 ): int{
     $stmt = $this->db->prepare(
-        'INSERT INTO posts (user_id, title, description, image, category_id)
-        VALUES (:user_id, :title, :description, :image, :category_id)'
+        'INSERT INTO posts (user_id, tribe_id, culture_id, title, description, image)
+        VALUES (:user_id, :tribe_id, :culture_id, :title, :description, :image)'
     );
 
     $stmt->execute([
         'user_id' => $userId,
+        'culture_id' => $cultureId,
+        'tribe_id' => $tribeId,
         'title' => trim($title),
         'description' => trim($description),
-        'image'=> trim($image),
-        'category_id' => $categoryId
+        'image'=> trim($image)
     ]);
 
     return (int) $this->db->lastInsertId();
 }  
+
+
+
+
 }
