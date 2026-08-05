@@ -74,6 +74,8 @@ public function testPostCanBeCreated(): void
 
     $this->testUserIds[] = $userId;
 
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     $culture = new Culture($this->db);
 
     $cultureId = $culture->create(
@@ -81,6 +83,7 @@ public function testPostCanBeCreated(): void
     );
 
     $this->testCultureIds[] = $cultureId;
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $tribe = new Tribe($this->db);
 
@@ -90,6 +93,8 @@ public function testPostCanBeCreated(): void
     );
 
     $this->testTribeIds[] = $tribeId;
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $post = new Post($this->db);
 
