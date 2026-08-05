@@ -27,7 +27,9 @@ class AuthTest extends TestCase
     
     public function testUserCanBeLoggedIn(): void
     {
-
+        if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+        }
         $auth = new Auth();
 
         $auth->login(123);
@@ -38,7 +40,10 @@ class AuthTest extends TestCase
 
     public function testUserCanBeLoggedOut(): void
     {
-
+        if (session_status() === PHP_SESSION_NONE){
+        session_start();
+        }
+        
         $auth = new Auth();
 
         $auth->login(123);
