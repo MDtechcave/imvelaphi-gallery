@@ -7,6 +7,24 @@ use PHPUnit\Framework\TestCase;
 
 class AuthTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        if(session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+
+        $_SESSION = [];
+    }
+
+    protected function tearDown(): void 
+    {
+        $_SESSION = [];
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
+    }
+    
     public function testUserCanBeLoggedIn(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -29,7 +47,6 @@ class AuthTest extends TestCase
         $auth = new Auth();
 
         $auth->login(123);
-
         $auth->logout();
 
         $this->assertFalse($auth->isLoggedIn());
