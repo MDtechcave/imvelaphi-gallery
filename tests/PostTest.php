@@ -5,6 +5,7 @@ namespace Tests;
 use Mihledudumashe\ImvelaphiGallery\Database;
 use Mihledudumashe\ImvelaphiGallery\Culture;
 use Mihledudumashe\ImvelaphiGallery\Tribe;
+use Mihledudumashe\ImvelaphiGallery\Category;
 use Mihledudumashe\ImvelaphiGallery\User;
 use Mihledudumashe\ImvelaphiGallery\Post;
 use PHPUnit\Framework\TestCase;
@@ -16,6 +17,7 @@ class PostTest extends TestCase
     private array $testPostIds = [];
     private array $testCultureIds = [];
     private array $testTribeIds = [];
+    private array $testCategoryIds = [];
 
     protected function setUp(): void
     {
@@ -30,9 +32,16 @@ protected function tearDown(): void
     );
 
     foreach ($this->testPostIds as $postId) {
-            $stmt->execute(['id' => $postId]);
+      $stmt->execute(['id' => $postId]);
       }  
 
+      $stmt = $this->db->prepare(
+        'DELETE FROM category WHERE id = :id'
+      );
+
+      foreach ($this->testCategoryIds as $categoryId) {
+      $stmt->execute(['id' => $categoryId]);
+      }
 
      $stmt = $this->db->prepare(
         'DELETE FROM tribes WHERE id = :id'
@@ -74,7 +83,7 @@ public function testPostCanBeCreated(): void
 
     $this->testUserIds[] = $userId;
 
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $culture = new Culture($this->db);
 
@@ -83,7 +92,7 @@ public function testPostCanBeCreated(): void
     );
 
     $this->testCultureIds[] = $cultureId;
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $tribe = new Tribe($this->db);
 
@@ -96,12 +105,23 @@ public function testPostCanBeCreated(): void
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    $category = new Category($this->db);
+
+    $categoryId = $category->create(
+        'name',
+        'icon'
+    );
+
+    $this->testCategoryIds[] = $categoryId;
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
     $post = new Post($this->db);
 
     $postId = $post->create(
         $userId,
         $cultureId,
         $tribeId,
+        $categoryId,
         'Umbacho',
         'Worn during ceremonies',
         'https://i.pinimg.com/1200x/ae/9b/69/ae9b69b352443ceccff3dab70fbe8ef4.jpg',
@@ -112,7 +132,7 @@ public function testPostCanBeCreated(): void
    //QUERY DATABASE FOR THE POST I JUST CREATED
 
    $stmt = $this->db->prepare(
-    'SELECT user_id, tribe_id, culture_id, title, description, image
+    'SELECT user_id, tribe_id, culture_id, category_id, title, description, image
     FROM posts
     WHERE id = :id'
    );
@@ -125,6 +145,7 @@ public function testPostCanBeCreated(): void
     $this->assertSame($userId, (int) $createdPost['user_id']);
     $this->assertSame($tribeId, (int) $createdPost['tribe_id']);
     $this->assertSame($cultureId, (int) $createdPost['culture_id']);
+    $this->assertSame($categoryId, (int) $categoryPost['category_id']);
     $this->assertSame('Umbacho', $createdPost['title']);
     $this->assertSame('Worn during ceremonies', $createdPost['description']);
     $this->assertSame('https://i.pinimg.com/1200x/ae/9b/69/ae9b69b352443ceccff3dab70fbe8ef4.jpg', $createdPost['image']);

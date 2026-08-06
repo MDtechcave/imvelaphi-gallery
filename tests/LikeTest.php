@@ -20,7 +20,7 @@ class LikeTest extends TestCase
     private array $testLikeIds = [];
 
 protected function setUp(): void
-{
+ {
     $database = new Database();
     $this->db = $database->connect();
 }
