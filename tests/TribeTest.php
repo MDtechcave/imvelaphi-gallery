@@ -18,10 +18,13 @@ class TribeTest extends TestCase
 {
     $database = new Database();
     $this->db = $database->connect();
+
+  
 }
 //TEARDOWN FUNCTION TO DELETE TEST DATA AFTER EACH TEST
 protected function tearDown(): void
 {
+
     $stmt = $this->db->prepare(
         'DELETE FROM tribes WHERE id = :id'
     );

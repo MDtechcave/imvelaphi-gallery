@@ -5,6 +5,7 @@ namespace Tests;
 use Mihledudumashe\ImvelaphiGallery\Database;
 use Mihledudumashe\ImvelaphiGallery\User;
 use Mihledudumashe\ImvelaphiGallery\Culture;
+use Mihledudumashe\ImvelaphiGallery\Category;
 use Mihledudumashe\ImvelaphiGallery\Tribe;
 use Mihledudumashe\ImvelaphiGallery\Post;
 use Mihledudumashe\ImvelaphiGallery\Like;
@@ -15,12 +16,13 @@ class LikeTest extends TestCase
     private \PDO $db;
     private array $testUserIds = [];
     private array $testCultureIds = [];
+    private array $testCategoryIds = [];
     private array $testTribeIds = [];
     private array $testPostIds = [];
     private array $testLikeIds = [];
 
 protected function setUp(): void
- {
+{
     $database = new Database();
     $this->db = $database->connect();
 }
@@ -64,6 +66,15 @@ protected function tearDown(): void
     }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    $stmt = $this->db->prepare(
+        'DELETE FROM categories WHERE id = :id'
+    );
+
+    foreach($this->testCategoryIds as $categoryId) {
+        $stmt->execute(['id' => $categoryId]);
+    }
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      $stmt = $this->db->prepare(
         'DELETE FROM users WHERE id = :id'
     );
@@ -80,12 +91,22 @@ public function testLikeCanBeCreated(): void
     $user = new User($this->db);
 
     $userId = $user->create(
-        'mihletest',
-        'mihletest@example.com',
+        'testest',
+        'testtest@example.com',
         'Password123!'
     );
 
     $this->testUserIds[] = $userId;
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    $category = new Category($this->db);
+
+    $categoryId = $category->create(
+        'Clothing',
+        'Pants'
+    );
+
+    $this->testCategoryIds[] = $categoryId;
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $culture = new Culture($this->db);
@@ -113,6 +134,7 @@ public function testLikeCanBeCreated(): void
         $userId,
         $cultureId,
         $tribeId,
+        $categoryId,
         'Umbhaco',
         'Worn during ceremonies',
         'https://i.pinimg.com/1200x/ae/9b/69/ae9b69b352443ceccff3dab70fbe8ef4.jpg'

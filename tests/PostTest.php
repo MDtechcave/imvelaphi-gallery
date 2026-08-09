@@ -23,10 +23,14 @@ class PostTest extends TestCase
     {
         $database = new Database();
         $this->db = $database->connect();
+
+        echo "\nDATABASE: " . $this->db->query('SELECT DATABASE()')->fetchColumn() . "\n";
     }
 
 protected function tearDown(): void
 {
+    echo "\nTEARDOWN RUNNING\n";
+
     $stmt = $this->db->prepare(
         'DELETE FROM posts WHERE id = :id'
     );
@@ -36,7 +40,7 @@ protected function tearDown(): void
       }  
 
       $stmt = $this->db->prepare(
-        'DELETE FROM category WHERE id = :id'
+        'DELETE FROM categories WHERE id = :id'
       );
 
       foreach ($this->testCategoryIds as $categoryId) {
@@ -145,7 +149,7 @@ public function testPostCanBeCreated(): void
     $this->assertSame($userId, (int) $createdPost['user_id']);
     $this->assertSame($tribeId, (int) $createdPost['tribe_id']);
     $this->assertSame($cultureId, (int) $createdPost['culture_id']);
-    $this->assertSame($categoryId, (int) $categoryPost['category_id']);
+    $this->assertSame($categoryId, (int) $createdPost['category_id']);
     $this->assertSame('Umbacho', $createdPost['title']);
     $this->assertSame('Worn during ceremonies', $createdPost['description']);
     $this->assertSame('https://i.pinimg.com/1200x/ae/9b/69/ae9b69b352443ceccff3dab70fbe8ef4.jpg', $createdPost['image']);

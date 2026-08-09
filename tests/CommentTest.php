@@ -7,6 +7,7 @@ use Mihledudumashe\ImvelaphiGallery\User;
 use Mihledudumashe\ImvelaphiGallery\Culture;
 use Mihledudumashe\ImvelaphiGallery\Tribe;
 use Mihledudumashe\ImvelaphiGallery\Post;
+use Mihledudumashe\ImvelaphiGallery\Category;
 use Mihledudumashe\ImvelaphiGallery\Comment;
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +16,8 @@ class CommentTest extends TestCase
     private \PDO $db;
     private array $testUserIds = [];
     private array $testCultureIds = [];
-    private array $testCommentIds =[];
+    private array $testCommentIds = [];
+    private array $testCategoryIds =[];
     private array $testTribeIds = [];
     private array $testPostIds = [];
 
@@ -56,12 +58,20 @@ protected function tearDown(): void
         $stmt->execute(['id' => $tribeId]);
     }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    $stmt = $this->db->prepare(
+
+     $stmt = $this->db->prepare(
         'DELETE FROM cultures WHERE id = :id'
     );
 
     foreach ($this->testCultureIds as $cultureId) {
         $stmt->execute(['id' => $cultureId]);
+    }
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     $stmt = $this->db->prepare(
+        'DELETE FROM categories WHERE id = :id'
+    );
+    foreach($this->testCategoryIds as $categoryId) {
+        $stmt->execute(['id' => $categoryId]);
     }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       $stmt = $this->db->prepare(
@@ -86,8 +96,18 @@ public function testCommentCanBeCreated(): void
     );
 
     $this->testUserIds[] = $userId;
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    $category = new Category($this->db);
+
+    $categoryId = $category->create(
+        'Food',
+        'Amagwinya'
+    );
+
+    $this->testCategoryIds[] = $categoryId;
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $culture = new Culture($this->db);
 
@@ -97,7 +117,7 @@ public function testCommentCanBeCreated(): void
 
     $this->testCultureIds[] = $cultureId;
 
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $tribe = new Tribe($this->db);
 
@@ -115,9 +135,10 @@ public function testCommentCanBeCreated(): void
         $userId,
         $cultureId,
         $tribeId,
+        $categoryId,
         'Umbacho',
         'Worn during ceremonies',
-        'https://i.pinimg.com/1200x/ae/9b/69/ae9b69b352443ceccff3dab70fbe8ef4.jpg',
+        'https://i.pinimg.com/1200x/ae/9b/69/ae9b69b352443ceccff3dab70fbe8ef4.jpg'
     );
 
     $this->testPostIds[] = $postId;

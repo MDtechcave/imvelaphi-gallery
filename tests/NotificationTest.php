@@ -5,7 +5,7 @@ namespace Tests;
 use Mihledudumashe\ImvelaphiGallery\Database;
 use Mihledudumashe\ImvelaphiGallery\User;
 use Mihledudumashe\ImvelaphiGallery\Post;
-use mihledudumashe\ImvelaphiGallery\Culture;
+use Mihledudumashe\ImvelaphiGallery\Culture;
 use Mihledudumashe\ImvelaphiGallery\Tribe;
 use Mihledudumashe\ImvelaphiGallery\Category;
 use Mihledudumashe\ImvelaphiGallery\Notification;
@@ -13,8 +13,9 @@ use PHPUnit\Framework\TestCase;
 
 class NotificationTest extends TestCase
 {
-    private \PD $db;
+    private \PDO $db;
     private array $testUserIds = [];
+    private array $testRelatedUserIds = [];
     private array $testPostIds = [];
     private array $testCultureIds = [];
     private array $testTribeIds = [];
@@ -24,65 +25,75 @@ class NotificationTest extends TestCase
 protected function setUp(): void
 {
     $database = new Database();
-    $this->$db = $database->connect();
+    $this->db = $database->connect();
 }
-
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 protected function tearDown(): void
 {
     $stmt = $this->db->prepare(
-        'DELETE FROM users WHERE id = :id'
+    'DELETE FROM notifications WHERE id = :id'
     );
-    foreach($this->testUserIds as $userId) {
-        $stmt = $this->execute(['id' => $userId]);
+    foreach ($this->testNotificationIds as $notificationId) {
+        $stmt->execute(['id' => $notificationId]);
     }
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+     $stmt = $this->db->prepare(
+        'DELETE FROM posts WHERE id = :id'
+    );
+
+    foreach ($this->testPostIds as $postId) {
+        $stmt->execute(['id' => $postId]);
+    }
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+     $stmt =$this->db->prepare(
+        'DELETE FROM tribes WHERE id = :id'
+    );
+
+    foreach ($this->testTribeIds as $tribeId) {
+        $stmt->execute(['id' => $tribeId]);
+    }
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $stmt = $this->db->prepare(
         'DELETE FROM cultures WHERE id = :id'
     );
     foreach ($this->testCultureIds as $cultureId) {
-        $stmt = $this->execute(['id' => $cultureId]);
+        $stmt->execute(['id' => $cultureId]);
     }
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    $stmt =$this->db->prepare(
-        'DELETE FROM tribes WHERE id = :id'
-    );
-
-    foreach ($this->testTribeIds as $tribeId) {
-        $stmt = $this->execute(['id' => $tribeId]);
-    }
-
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $stmt = $this->db->prepare(
         'DELETE FROM categories WHERE id = :id'
     );
     foreach ($this->testCategoryIds as $categoryId) {
-        $stmt = $this->execute (['id' => $categoryId]);
+        $stmt->execute (['id' => $categoryId]);
     }
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    $stmt = $this->db->prepare(
-        'DELETE FROM posts WHERE id = :id'
-    );
-
-    foreach ($this->testPostIds as $postId) {
-        $stmt = $this->execute(['id' => $postId]);
-    }
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $stmt = $this->db->prepare(
-    'DELETE FROM notifications WHERE id = :id'
+        'DELETE FROM users WHERE id = :id'
     );
-    foreach ($this->testNotificationIds as $notificationId) {
-        $stmt = $this->execute(['id' => $notficationId]);
-    }
 
+    foreach ($this->testRelatedUserIds as $relatedUserId) {
+        $stmt->execute(['id' => $relatedUserId]);
+    }
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+     $stmt = $this->db->prepare(
+        'DELETE FROM users WHERE id = :id'
+    );
+    foreach ($this->testUserIds as $userId) {
+        $stmt->execute(['id' => $userId]);
+    }
+    
 }
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 public function testIfNotificationCanBeCreated(): void 
 {
@@ -97,13 +108,15 @@ public function testIfNotificationCanBeCreated(): void
     $this->testUserIds[] = $userId;
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    $relatedUserId = $user->create(
-        'sisa',
-        'sisa@example.com',
+    $relatedUser = new User($this->db);
+
+    $relatedUserId = $relatedUser->create(
+        'mikey',
+        'mikey@example.com',
         'Password123!'
     );
 
-    $this->testUserIds[] = $relatedUserId;
+    $this->testRelatedUserIds[] = $relatedUserId;
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $category = new Category($this->db);
@@ -144,8 +157,7 @@ public function testIfNotificationCanBeCreated(): void
         $categoryId,
         'Umbacho',
         'Worn during ceremonies',
-        'https://i.pinimg.com/1200x/ae/9b/69/ae9b69b352443ceccff3dab70fbe8ef4.jpg',
-    );
+        'https://i.pinimg.com/1200x/ae/9b/69/ae9b69b352443ceccff3dab70fbe8ef4.jpg'    );
 
     $this->testPostIds[] = $postId;
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -156,7 +168,7 @@ public function testIfNotificationCanBeCreated(): void
         $userId,
         $relatedUserId,
         $postId,
-        $type,
+        'like',
         false
     );
 
@@ -166,8 +178,8 @@ public function testIfNotificationCanBeCreated(): void
     //QUERY THE DATABASE IF A NOTIFICATION HAS BEEN CREATED
 
     $stmt = $this->db->prepare(
-        'SELECT user_id, type, related_user_id, post_id, is_read,
-        FROM notifications,
+        'SELECT user_id, type, related_user_id, post_id, is_read
+        FROM notifications
         WHERE id = :id'
     );
 
@@ -177,8 +189,12 @@ public function testIfNotificationCanBeCreated(): void
 
     $createdNotification = $stmt->fetch();
 
+    $this->assertIsArray($createdNotification);
     $this->assertSame($userId, (int) $createdNotification['user_id']);
+    $this->assertSame($relatedUserId, (int) $createdNotification['related_user_id']);
     $this->assertSame($postId, (int) $createdNotification['post_id']);
+    $this->assertSame('like', $createdNotification['type']);
+    $this->assertSame(0, (int) $createdNotification['is_read']);
 }
 
  }
