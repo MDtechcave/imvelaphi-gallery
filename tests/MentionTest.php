@@ -18,8 +18,9 @@ class MentionTest extends TestCase
     private array $testMentionIds = [];
     private array $testPostIds = [];
     private array $testCategoryIds = [];
-    private array $testTribeIds = [];
     private array $testCultureIds = [];
+    private array $testTribeIds = [];
+    private array $testcultureIds = [];
 
 protected function setUp(): void
 {
@@ -149,7 +150,7 @@ public function testIfMentionsCanBeCreadted(): void
 
     $mentionId = $mention->create(
         $postId,
-        $UserBId
+        $userBId
     );
 
     $this->testMentionIds[] = $mentionId;
