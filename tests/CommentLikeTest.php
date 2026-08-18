@@ -170,7 +170,6 @@ public function testIfUserCanLikeAComment(): void
 
     $this->testCommentLikeIds[] = $commentLikeId;
 
-
 //  QUERY THE DATABASE
 
 $stmt = $this->db->prepare(
@@ -187,4 +186,104 @@ $this->assertIsArray($createdCommentLike);
 $this->assertSame($userBId, (int) $createdCommentLike['user_id']);
 $this->assertSame($commentId, (int) $createdCommentLike['comment_id']);
 }
+
+//Unlike comment function
+
+public function testIfUserCanUnlikeAComment(): void
+{
+    $user = new User($this->db);
+
+    // User A - comment owner
+    $userAId = $user->create(
+        'Mihle.dudumashe',
+        'mihle.dudumashe@example.com',
+        'PASSWORD123!'
+    );
+
+    $this->testUserIds[] = $userAId;
+
+
+    // User B - person liking/unliking
+    $userBId = $user->create(
+        'Aviwe.dudumashe',
+        'aviwe.dudumashe@example.com',
+        'PASSWORD123!'
+    );
+
+    $this->testUserIds[] = $userBId;
+
+    //-----------------------------------------------
+
+    $culture = new Culture($this->db);
+
+    $cultureId = $culture->create(
+        'Xhosa'
+        );
+
+    $this->testCultureIds[] = $cultureId;
+    //----------------------------------------------
+
+    $tribe = new Tribe($this->db);
+
+    $tribeId = $tribe->create(
+        $cultureId,
+        'hlubi'
+        );
+
+    $this->testTribeIds[] = $tribeId;
+    //--------------------------------------------
+
+    $category = new Category($this->db);
+
+    $categoryId = $category->create(
+        'Music',
+        'Maskandi'
+    );
+
+    $this->testCategoryIds[] = $categoryId;
+    //------------------------------------------------
+
+    $post = new Post($this->db);
+
+    $postId = $post->create(
+        $userAId,
+        $cultureId,
+        $tribeId,
+        $categoryId,
+        'Umbacho',
+        'Worn During ceremonies',
+        'image-url'
+    );
+
+    $this->testPostIds[] = $postId;
+    //------------------------------------------------
+
+    $comment = new Comment($this->db);
+
+    $commentId = $comment->create(
+        $userAId,
+        $postId,
+        'Amazing'
+    );
+
+    $this->testCommentIds[] = $commentId;
+    //---------------------------------------------------
+
+    $commentLike = new CommentLike($this->db);
+
+    $commentLikeId = $commentLike->create(
+        $commentId,
+        $userBId
+    );
+
+    $this->testCommentLikeIds[] = $commentLikeId;
+    //---------------------------------------------------
+    $this->assertTrue($commentLike->exists($commentId, $userBId));
+    $result = $commentLike->delete($commentId,$userBId);
+    $this->assertTrue($result);
+    $this->assertFalse($commentLike->exists($commentId, $userBId));
+}
+
+
+
 }
