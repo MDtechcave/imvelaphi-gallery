@@ -55,7 +55,7 @@ public function testIfUserAchievementsCanBeCreated(): void
 
     $achievementId = $achievement->create(
         $userId,
-        'storytelling'
+        'storyteller'
     );
 
     $this->testAchievementIds[] = $achievementId;
@@ -75,6 +75,6 @@ $createdAchievement = $stmt->fetch();
 
 $this->assertIsArray($createdAchievement);
 $this->assertSame($userId, (int) $createdAchievement['user_id']);
-$this->assertSame('storytelling', $createdAchievement['badge_type']);
+$this->assertSame('storyteller',$createdAchievement['badge_type']);
 }
 }
