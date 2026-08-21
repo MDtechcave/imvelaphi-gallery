@@ -160,7 +160,7 @@ public function testIfUserCanReportAPost(): void
 //Query the database
 
     $stmt = $this->db->prepare(
-    'SELECT reporter_id, content_type, post_id, comment_id, reported_user_id, reason
+    'SELECT user_id, content_type, post_id, comment_id, reported_user_id, reason
      FROM content_reports
      WHERE id = :id'
 );
@@ -174,11 +174,188 @@ $createdReport = $stmt->fetch();
 // Assertions
 
 $this->assertIsArray($createdReport);
-$this->assertSame($userId, (int) $createdReport['reporter_id']);
+$this->assertSame($userId, (int) $createdReport['user_id']);
 $this->assertSame('post', $createdReport['content_type']);
 $this->assertSame($postId, (int) $createdReport['post_id']);
 $this->assertNull($createdReport['comment_id']);
 $this->assertNull($createdReport['reported_user_id']);
 $this->assertSame('Inappropriate content', $createdReport['reason']);
+}
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+public function testIfUserCanReportAComment(): void
+{
+    $user = new User($this->db);
+
+    $userId = $user->create(
+        'Aphiwetest',
+        'Aviwetest@example.com',
+        'PASSWORD123!'
+    );
+
+    $this->testUserIds[] = $userId;
+
+//--------------------------------------------------------
+
+    $category = new Category($this->db);
+
+    $categoryId = $category->create(
+        'Culture',
+        'Clothing'
+    );
+
+    $this->testCategoryIds[] = $categoryId;
+//-------------------------------------------------------
+
+    $culture = new Culture($this->db);
+
+    $cultureId = $culture->create(
+        'Venda'
+    );
+
+    $this->testCultureIds[] = $cultureId;
+//------------------------------------------------------
+
+    $tribe = new Tribe ($this->db);
+
+    $tribeId = $tribe->create(
+        $cultureId,
+        'Vavhone'
+    );
+
+    $this->testTribeIds[] = $tribeId;
+//---------------------------------------------------------
+
+    $post = new Post($this->db);
+
+    $postId = $post->create(
+        $userId,
+        $cultureId,
+        $tribeId,
+        $categoryId,
+        'Umbacho',
+        'Worn during ceremonies',
+        'https://i.pinimg.com/1200x/ae/9b/69/ae9b69b352443ceccff3dab70fbe8ef4.jpg'
+    );
+
+    $this->testPostIds[] = $postId;
+//----------------------------------------------------------------
+
+    $comment = new Comment($this->db);
+
+    $commentId = $comment->create(
+        $userId,
+        $postId,
+        'False Info!'
+    );
+
+    $this->testCommentIds[] = $commentId;
+//--------------------------------------------------------------------
+
+    $report = new Report($this->db);
+
+    $reportId = $report->create(
+        $userId,
+        'comment',
+        null,
+        $commentId,
+        null,
+        'False information!'
+    );
+
+    $this->testReportIds[] = $reportId;
+//--------------------------------------------------------
+
+//QUERY THE DATABASE
+    $stmt = $this->db->prepare(
+    'SELECT user_id, content_type, post_id, comment_id, reported_user_id, reason
+     FROM content_reports
+     WHERE id = :id'
+);
+
+$stmt->execute([
+    'id' => $reportId
+]);
+
+$createdReport = $stmt->fetch();
+
+$stmt->execute([
+    'id' => $reportId
+    ]);
+
+$createdReport = $stmt->fetch();
+
+// ASSERTION
+
+$this->assertIsArray($createdReport);
+$this->assertSame($userId, (int) $createdReport['user_id']);
+$this->assertSame('comment', $createdReport['content_type']);
+$this->assertNull($createdReport['post_id']);
+$this->assertSame($commentId, (int) $createdReport['comment_id']);
+$this->assertNull($createdReport['reported_user_id']);
+$this->assertSame('False information!', $createdReport['reason']);
+
+}
+
+public function testIfUserCanReportAUser(): void
+{
+    $user = new User($this->db);
+
+    $userAId = $user->create(
+        'Timmytest',
+        'Timmytest@example.com',
+        'PASSWORD123!'
+    );
+    $this->testUserIds[] = $userAId;
+    //-------------------------------------
+    $user = new User($this->db);
+
+    $userBId = $user->create(
+        'Mickeytest',
+        'Mickeytest@example.com',
+        'PASSWORD123!'
+    );
+    $this->testUserIds[] = $userBId;
+    //---------------------------------------
+    $report = new Report($this->db);
+
+     $reportId = $report->create(
+        $userAId,       
+        'user',          
+        null,            
+        null,            
+        $userBId,        
+        'Harassment'     
+    );
+
+    $this->testReportIds[] = $reportId;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ // QUERY THE DATABASE
+
+    $stmt = $this->db->prepare(
+        'SELECT user_id, content_type, post_id, comment_id,
+                reported_user_id, reason
+         FROM content_reports
+         WHERE id = :id'
+    );
+
+    $stmt->execute([
+        'id' => $reportId
+    ]);
+
+    $createdReport = $stmt->fetch();
+
+    // ASSERTION
+
+    $this->assertIsArray($createdReport);
+    $this->assertSame($userAId, (int) $createdReport['user_id']);
+    $this->assertSame('user', $createdReport['content_type']); 
+     $this->assertNull($createdReport['post_id']);
+    $this->assertNull($createdReport['comment_id']);
+    $this->assertSame($userBId, (int) $createdReport['reported_user_id']);
+    $this->assertSame('Harassment', $createdReport['reason']);
 }
 }
