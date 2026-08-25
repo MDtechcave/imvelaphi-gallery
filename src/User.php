@@ -63,4 +63,17 @@ public function authenticate(string $email, string $password): ?array
 
     return $user;
 }
+public function updateRole(int $userId, string $role): bool
+{
+    $stmt = $this->db->prepare(
+        'UPDATE users
+        SET role = :role
+        WHERE id = :id'
+    );
+
+    return $stmt->execute([
+        'role' => $role,
+        'id' => $userId
+    ]);
+}
 }

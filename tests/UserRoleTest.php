@@ -54,5 +54,34 @@ $createdUser = $stmt->fetch();
 $this->assertIsArray($createdUser);
 $this->assertSame('user', $createdUser['role']);
 
-    }
+}
+
+public function testUpdateRoleChangesUserToModerator(): void
+{
+    $user = new User($this->db);
+
+    $userId = $user->create(
+        'ModTest',
+        'modtest@example.com',
+        'PASSWORD123!'
+    );
+
+    $this->testUserIds[] = $userId;
+
+    $user->updateRole($userId, 'moderator');
+
+//QUERY THE DATABASE
+    $stmt = $this->db->prepare(
+        'SELECT role
+        FROM users
+         WHERE id = :id'
+    );
+    $stmt->execute(['id' => $userId]);
+
+//ASSERTION
+    $updatedUser = $stmt->fetch();
+
+    $this->assertIsArray($updatedUser);
+    $this->assertSame('moderator', $updatedUser['role']);
+}
 }

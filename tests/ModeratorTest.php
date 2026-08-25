@@ -9,10 +9,10 @@ use Mihledudumashe\ImvelaphiGallery\Report;
 use Mihledudumashe\ImvelaphiGallery\Category;
 use Mihledudumashe\ImvelaphiGallery\Culture;
 use Mihledudumashe\ImvelaphiGallery\Tribe;
-use Mihledudumashe\ImvelaphiGallery\Moderation;
+use Mihledudumashe\ImvelaphiGallery\Moderator;
 use PHPUnit\Framework\TestCase;
 
-class ModerationTest extends TestCase
+class ModeratorTest extends TestCase
 {
     private \PDO $db;
     private array $testUserIds = [];
@@ -29,7 +29,10 @@ protected function setUp(): void
 }
 
 protected function tearDown(): void
+
+
 {
+    
     $stmt = $this->db->prepare(
         'DELETE FROM content_reports WHERE id = :id'
     );
@@ -79,7 +82,7 @@ protected function tearDown(): void
 }
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-public function testIfModerationCanBeUsed(): void
+public function testModeratorCanReviewReport(): void
 {
     $user = new User($this->db);
 
@@ -90,6 +93,20 @@ public function testIfModerationCanBeUsed(): void
     );
 
     $this->testUserIds[] = $userId;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    $moderator = new User($this->db);
+
+    $moderatorId = $moderator->create(
+        'moderatortest',
+        'moderatortest@example.com',
+        'PASSWORD1231'
+    );
+
+    $this->testUserIds[] = $userId;
+
+    $moderator->updateRole($moderatorId, 'moderator');
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $category = new Category($this->db);
@@ -141,16 +158,40 @@ public function testIfModerationCanBeUsed(): void
 
     $reportId = $report->create(
         $userId,
-        'post',
         $postId,
         null,
         null,
-
-        'Inappropriate content'
-    );
-
+        'Inappropriate content',
+        'post'
+);
     $this->testReportIds[] = $reportId;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+    $moderator = new Moderator($this->db);
+
+    $moderator->reviewReport(
+        $reportId,
+        $moderatorId
+);
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+//QUERY THE DATABASE
+    $stmt = $this->db->prepare(
+        'SELECT status, reviewed_by, reviewed_at
+        FROM content_reports
+        WHERE id = :id'
+);
+
+$stmt->execute(['id' => $reportId]);
+
+$moderatedReport = $stmt->fetch();
+
+//ASSERTIONS 
+$this->assertIsArray($moderatedReport);
+$this->assertSame('reviewed', $moderatedReport['status']);
+$this->assertSame($moderatorId,(int) $moderatedReport['reviewed_by']);
+$this->assertNotNull($moderatedReport['reviewed_at']);
 }
 }
