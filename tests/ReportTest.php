@@ -97,7 +97,7 @@ public function testIfUserCanReportAPost(): void
     );
 
     $this->testUserIds[] = $userId;
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $category = new Category($this->db);
 

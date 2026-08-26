@@ -131,8 +131,8 @@ public function testModeratorCanReviewReport(): void
     $tribe = new Tribe($this->db);
 
     $tribeId = $tribe->create(
-    $cultureId,    
-    'Hlubi'
+        $cultureId,    
+        'Hlubi'
     );
 
     $this->testTribeIds[] = $tribeId;
@@ -142,9 +142,9 @@ public function testModeratorCanReviewReport(): void
 
     $postId = $post->create(
         $userId,
-        $categoryId,
         $cultureId,
         $tribeId,
+        $categoryId,
         'Umbacho',
         'Worn during ceremonies',
         'https://i.pinimg.com/1200x/ae/9b/69/ae9b69b352443ceccff3dab70fbe8ef4.jpg'  
@@ -154,18 +154,19 @@ public function testModeratorCanReviewReport(): void
     $this->testPostIds[] = $postId;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    $report = new Report($this->db);
+ $report = new Report($this->db);
 
-    $reportId = $report->create(
+        $reportId = $report->create(
         $userId,
+        'post',
         $postId,
         null,
         null,
-        'Inappropriate content',
-        'post'
-);
-    $this->testReportIds[] = $reportId;
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+       'Inappropriate content'
+    );
+
+    $this->testReportIds[] = $reportId;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
     $moderator = new Moderator($this->db);
 
