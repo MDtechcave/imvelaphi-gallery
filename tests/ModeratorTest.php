@@ -103,7 +103,7 @@ public function testModeratorCanReviewReport(): void
         'PASSWORD1231'
     );
 
-    $this->testUserIds[] = $userId;
+    $this->testUserIds[] = $moderatorId;
 
     $moderator->updateRole($moderatorId, 'moderator');
 
@@ -154,26 +154,26 @@ public function testModeratorCanReviewReport(): void
     $this->testPostIds[] = $postId;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- $report = new Report($this->db);
+$report = new Report($this->db);
 
-        $reportId = $report->create(
-        $userId,
-        'post',
-        $postId,
-        null,
-        null,
-
-       'Inappropriate content'
-    );
-
-    $this->testReportIds[] = $reportId;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    $moderator = new Moderator($this->db);
-
-    $moderator->reviewReport(
-        $reportId,
-        $moderatorId
+$reportId = $report->create(
+    $userId,
+    'post',
+    $postId,
+    null,
+    null,
+    'Inappropriate content'
 );
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  $moderator = new Moderator($this->db);
+
+$moderator->reviewReport(
+    $reportId,
+    $moderatorId,
+    'approved'
+);
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -191,8 +191,221 @@ $moderatedReport = $stmt->fetch();
 
 //ASSERTIONS 
 $this->assertIsArray($moderatedReport);
-$this->assertSame('reviewed', $moderatedReport['status']);
+$this->assertSame('approved', $moderatedReport['status']);
 $this->assertSame($moderatorId,(int) $moderatedReport['reviewed_by']);
 $this->assertNotNull($moderatedReport['reviewed_at']);
 }
+
+public function testAdminCanReviewReport(): void
+{
+    $user = new User($this->db);
+
+    $userId = $user->create(
+        'Sisionketest',
+        'Sisonketest@example.com',
+        'PASSWORD123!'
+    );
+
+    $this->testUserIds[] = $userId;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+$admin = new User($this->db);
+
+    $adminId = $admin->create(
+        'admintest',
+        'admintest@example.com',
+        'PASSWORD1231'
+    );
+
+    $this->testUserIds[] = $adminId;
+
+    $admin->updateRole($adminId, 'admin');
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+$category = new Category($this->db);
+
+    $categoryId = $category->create(
+        'Music',
+        'Jazz'
+    );
+
+    $this->testCategoryIds[] = $categoryId;
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+$culture = new Culture($this->db);
+
+    $cultureId = $culture->create(
+        'Xhosa'
+    );
+
+    $this->testCultureIds[] = $cultureId;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+$tribe = new Tribe($this->db);
+
+    $tribeId = $tribe->create(
+    $cultureId,    
+    'hlubi'
+    );
+
+    $this->testTribeIds[] = $tribeId;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ $post = new post($this->db);
+
+    $postId = $post->create(
+        $userId,
+        $cultureId,
+        $tribeId,
+        $categoryId,
+        'Umbacho',
+        'Worn during ceremonies',
+        'https://i.pinimg.com/1200x/ae/9b/69/ae9b69b352443ceccff3dab70fbe8ef4.jpg'  
+        
+);
+
+    $this->testPostIds[] = $postId;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+$report = new Report($this->db);
+
+    $reportId = $report->create(
+        $userId,
+        'post',
+        $postId,
+        null,
+        null,
+        'Inappropriate content'
+);
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+$moderator = new Moderator($this->db);
+
+    $moderator->reviewReport(
+        $reportId,
+        $adminId,
+        'approved'
+);
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+//QUERY THE DATABASE
+    $stmt = $this->db->prepare(
+        'SELECT status, reviewed_by, reviewed_at
+        FROM content_reports
+        WHERE id = :id'
+);
+
+$stmt->execute(['id' => $reportId]);
+
+$moderatedReport = $stmt->fetch();
+
+//ASSERTIONS 
+$this->assertIsArray($moderatedReport);
+$this->assertSame('approved', $moderatedReport['status']);
+$this->assertSame($adminId,(int) $moderatedReport['reviewed_by']);
+$this->assertNotNull($moderatedReport['reviewed_at']);   
+}
+
+public function testNormalUserCannotReviewReport(): void
+{
+    $user = new User($this->db);
+    
+    $userId = $user->create(
+        'Luxtest',
+        'Luxtest@example.com',
+        'PASSWORD123!'
+    );
+    $this->testUserIds[] = $userId;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    $category = new Category($this->db);
+
+    $categoryId = $category->create(
+        'Music',
+        'Jazz'
+    );
+
+    $this->testCategoryIds[] = $categoryId;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    $culture = new Culture($this->db);
+
+    $cultureId = $culture->create(
+        'Xhosa'
+    );
+
+    $this->testCultureIds[] = $cultureId;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    $tribe = new Tribe($this->db);
+
+    $tribeId = $tribe->create(
+        $cultureId,
+        'Hlubi'
+    );
+
+    $this->testTribeIds[] = $tribeId;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$post = new post($this->db);
+
+    $postId = $post->create(
+        $userId,
+        $cultureId,
+        $tribeId,
+        $categoryId,
+        'Umbacho',
+        'Worn during ceremonies',
+        'https://i.pinimg.com/1200x/ae/9b/69/ae9b69b352443ceccff3dab70fbe8ef4.jpg'  
+        
+);
+
+    $this->testPostIds[] = $postId;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    $report = new Report($this->db);
+
+    $reportId = $report->create(
+        $userId,
+        'post',
+        $postId,
+        null,
+        null,
+        'Inappropriate content'
+);
+
+    $this->testReportIds[] = $reportId;
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    $moderatorClass = new Moderator($this->db);
+
+    try {
+        $moderatorClass->reviewReport(
+            $reportId,
+            $userId,
+            'approved'
+        );
+
+        $this->fail('Expected a RuntimeException but none was thrown.');
+    } catch (\RuntimeException $e) {
+
+//QUERY THE DATABASE
+        $stmt = $this->db->prepare(
+            'SELECT status, reviewed_by
+            FROM content_reports
+            WHERE id = :id'
+        );
+
+        $stmt->execute(['id' => $reportId]);
+
+        $unmoderatedReport = $stmt->fetch();
+
+//ASSERTIONS
+        $this->assertIsArray($unmoderatedReport);
+        $this->assertSame('pending', $unmoderatedReport['status']);
+        $this->assertNull($unmoderatedReport['reviewed_by']);
+    }
+}
+
 }

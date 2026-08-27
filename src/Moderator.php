@@ -13,8 +13,13 @@ class Moderator
 
     public function reviewReport(
         int $reportId,
-        int $moderatorId
+        int $moderatorId,
+        string $status
     ): bool {
+
+        if (!in_array($status, ['approved', 'rejected', 'ignored'], true)) {
+        throw new \RuntimeException('Invalid report status.');
+    }
         
         // Check if the user is actually a moderator or admin
         $stmt = $this->db->prepare(
@@ -33,7 +38,7 @@ class Moderator
 
         if (!in_array($user['role'], ['moderator', 'admin'], true)) {
             throw new \RuntimeException(
-                'User is not authorized to review reports.VOETSEK!'
+                'User is not authorized to review reports.'
             );
         }
 
@@ -47,10 +52,14 @@ class Moderator
         );
 
         $stmt->execute([
-            'status' => 'reviewed',
+            'status' => $status,
             'reviewed_by' => $moderatorId,
             'id' => $reportId
         ]);
+
+        if ($stmt->rowCount() === 0) {
+    throw new \RuntimeException('Report not found.');
+}
 
         return true;
     }
